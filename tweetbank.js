@@ -3,35 +3,15 @@ var Tweet = require('./models').Tweet;
 
 module.exports = {
   add: function(name, tweet) {
-    // check if that name has an id
-    return User.findOne({where: {name: name}})
+    // use findOrCreate() which returns the user (created or found)
+    return User.findOrCreate({where: {name: name}})
       .then(function(data) {
-        // if the user is not there
-        if (!data) {
-          // throw error to skip to .catch and create a new user
-          throw Error();
-        }
-        // extract user id from the result
-        return data.dataValues.id;
+        // extract their id
+        return data[0].dataValues.id;
       })
       .then(function(id) {
-        return Tweet.create({UserId: id, tweet: tweet});
-      })
-      // create a new user entry for this person
-      .catch(function() {
-        return User.create({name: name, pictureUrl: undefined});
-      })
-      .then(function() {
-        return User.findOne({where: {name: name}});
-      })
-      .then(function(data) {
-        return data.dataValues.id;
-      })
-      .then(function(id) {
-        console.log(id);
         return Tweet.create({UserId: id, tweet: tweet});
       });
-
   },
 
   find: function(query) {
