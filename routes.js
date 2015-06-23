@@ -6,16 +6,19 @@ var fs = require('fs')
 
 router.get('/', function(req, res, next) {
   // res.json(tweetBank.list())
+  console.log('inside the list');
   tweetBank.list(function(tweets) {
   	res.render('index', {
-  		tweets: tweets
+  		tweets: tweets,
+  		showForm: true
   	});
   });
 })
 
-router.post('/', function(req, res, next) {
-  tweetBank.add(req.body.name, req.body.tweet, function() {
-  	res.status(201).end();
+router.post('/submit', function(req, res, next) {
+  console.log('inside the post', req.body.name, req.body.text);
+  tweetBank.add(req.body.name, req.body.text, function() {
+  	res.redirect('/');
   })
   // res.status(201).end()
 })
@@ -34,6 +37,3 @@ router.get('/style.css', function(req, res) {
     res.send(css)
   })
 })
-
-
-

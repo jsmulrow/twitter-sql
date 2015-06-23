@@ -1,21 +1,46 @@
 var User = require('./models').User;
 var Tweet = require('./models').Tweet;
 
-
-
 module.exports = {
   add: function(name, tweet, callback) {
-    User.findOrCreate({where: {name: name},})
-
-    
+    // check if that name has an id
+    User.findOne({where: {name: name}})
+    .then(function(data) {
+      // if the user is not there
+      if (!data) {
+        // throw error to skip to .catch and create a new user
+        throw Error();
+      }
+      // extract user id from the result
+      return data.dataValues.id;
+    })
+    .then(function(id) {
+      return Tweet.create({UserId: id, tweet: tweet});
+    })
+    .then(function() {
+      callback();
+    })
+    // create a new user entry for this person
+    .catch(function() {
+      return User.create({name: name, pictureUrl: undefined});
+    })
+    .then(function() {
+      return User.findOne({where: {name: name}});
+    })
+    .then(function(data) {
+      return data.dataValues.id;
+    })
+    .then(function(id) {
+      console.log(id);
+      return Tweet.create({UserId: id, tweet: tweet});
+    })
+    .then(function() {
+      callback();
+    });
 
   },
-  find: function(query, callback) {
-    // iterate through tweets attempting to match for query object
-    // eg tweets = [{ name: 'zeke', tweet: 'foo'}, { name: 'omri', tweet: 'bar'}]
-    // query { name: 'zeke' }
-    // will return [{ name: 'zeke', tweet: 'foo'}]
 
+  find: function(query, callback) {
     Tweet.findAll({include: [{
         model: User,
         where: {name: query.name}
@@ -26,16 +51,17 @@ module.exports = {
         return {
           tweet: elem.dataValues.tweet,
           name: elem.dataValues.User.dataValues.name
-          }
+          };
       });
     })
     .then(function(data) {
       callback(data);
     });
   },
+
   list: function(callback) {
     Tweet.findAll({include: [{
-        model: User,
+        model: User
       }]
     })
     .then(function(data) {
@@ -43,7 +69,7 @@ module.exports = {
         return {
           tweet: elem.dataValues.tweet,
           name: elem.dataValues.User.dataValues.name
-          }
+          };
       });
     })
     .then(function(data) {
@@ -51,23 +77,3 @@ module.exports = {
     });
   }
 };
-
-
-var randArrayEl = function(arr) {
- return arr[Math.floor(Math.random() * arr.length)];
-};
-
-var getFakeName = function() {
- var fakeFirsts = ['Nimit', 'Dave', 'Will', 'Charlotte', 'Jacob','Ethan','Sophia','Emma','Madison'];
- var fakeLasts = ["Alley", 'Stacky', 'Fullstackerson', 'Nerd', 'Ashby', 'Gatsby', 'Hazelnut', 'Cookie', 'Tilde', 'Dash'];
- return randArrayEl(fakeFirsts) + " " + randArrayEl(fakeLasts);
-};
-
-var getFakeTweet = function() {
- var awesome_adj = ['awesome','breathtaking','amazing','sexy','sweet','cool','wonderful','mindblowing'];
- return "Fullstack Academy is " + randArrayEl(awesome_adj) + "! The instructors are just so " + randArrayEl(awesome_adj) + ". #fullstacklove #codedreams";
-};
-
-for(var i=0; i<10; i++) {
- module.exports.add( getFakeName(), getFakeTweet() );
-}
