@@ -1,34 +1,56 @@
-var tweets = []
+var User = require('./models').User;
+var Tweet = require('./models').Tweet;
+
+
 
 module.exports = {
-  add: function(name, tweet) {
-    tweets.push({ name: name, tweet: tweet })
+  add: function(name, tweet, callback) {
+    User.findOrCreate({where: {name: name},})
+
+    
+
   },
-  find: function(query) {
+  find: function(query, callback) {
     // iterate through tweets attempting to match for query object
     // eg tweets = [{ name: 'zeke', tweet: 'foo'}, { name: 'omri', tweet: 'bar'}]
     // query { name: 'zeke' }
     // will return [{ name: 'zeke', tweet: 'foo'}]
-    var filteredTweets = [];
-    for(var i = 0; i < tweets.length; i++) {
-      var tweetInResult = true
-      console.log(query)
-      for(var key in query) {
-        console.log(query[key], tweets[i][key])
-        if(query[key] !== tweets[i][key]) {
-          tweetInResult = false
-        }
-      }
-      if(tweetInResult) {
-        filteredTweets.push(tweets[i])
-      }
-    }
-    return filteredTweets
+
+    Tweet.findAll({include: [{
+        model: User,
+        where: {name: query.name}
+      }]
+    })
+    .then(function(data) {
+      return data.map(function(elem) {
+        return {
+          tweet: elem.dataValues.tweet,
+          name: elem.dataValues.User.dataValues.name
+          }
+      });
+    })
+    .then(function(data) {
+      callback(data);
+    });
   },
-  list: function() {
-    return tweets
+  list: function(callback) {
+    Tweet.findAll({include: [{
+        model: User,
+      }]
+    })
+    .then(function(data) {
+      return data.map(function(elem) {
+        return {
+          tweet: elem.dataValues.tweet,
+          name: elem.dataValues.User.dataValues.name
+          }
+      });
+    })
+    .then(function(data) {
+      callback(data);
+    });
   }
-}
+};
 
 
 var randArrayEl = function(arr) {

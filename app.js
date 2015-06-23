@@ -5,6 +5,8 @@ var bodyParser = require('body-parser')
 var app = express()
 module.exports = app
 
+// var socketio = require('socket.io')
+
 swig.setDefaults({cache: false});
 app.engine('html', swig.renderFile);
 app.set('view engine', 'html');
